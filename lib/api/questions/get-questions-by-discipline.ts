@@ -31,7 +31,6 @@ export async function getQuestionsByDiscipline(discipline: string) {
     const yearDirs = await readdir(baseDir);
     const filteredQuestions: Question[] = [];
 
-    // Filter discipline in lowercase to be case-insensitive
     const lowerCaseDiscipline = discipline.toLowerCase();
 
     const allPromises = yearDirs.map(async (yearDir) => {
@@ -44,7 +43,6 @@ export async function getQuestionsByDiscipline(discipline: string) {
 
         const questionSubDirs = await readdir(questionsDir);
 
-        // Process each subdirectory concurrently
         const subDirPromises = questionSubDirs.map(async (questionSubDir) => {
             const questionDirPath = path.join(questionsDir, questionSubDir);
 
@@ -55,7 +53,6 @@ export async function getQuestionsByDiscipline(discipline: string) {
 
             const questionFiles = await readdir(questionDirPath);
 
-            // Process each file concurrently
             const filePromises = questionFiles.map(async (file) => {
                 const filePath = path.join(questionDirPath, file);
 
@@ -63,7 +60,6 @@ export async function getQuestionsByDiscipline(discipline: string) {
                     const questionData = await readFile(filePath, 'utf-8');
                     const question = QuestionSchema.safeParse(JSON.parse(questionData));
 
-                    // Case-insensitive discipline match
                     if (question.success && question.data.discipline.toLowerCase() === lowerCaseDiscipline) {
                         filteredQuestions.push(question.data);
                     }
@@ -72,13 +68,13 @@ export async function getQuestionsByDiscipline(discipline: string) {
                 }
             });
 
-            await Promise.all(filePromises); // Wait for all file reads in this subdir
+            await Promise.all(filePromises);
         });
 
-        await Promise.all(subDirPromises); // Wait for all subdir processing
+        await Promise.all(subDirPromises);
     });
 
-    await Promise.all(allPromises); // Wait for all year directory processing
+    await Promise.all(allPromises);
 
     return filteredQuestions;
 }
